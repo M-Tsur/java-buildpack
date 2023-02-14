@@ -26,7 +26,7 @@ module Package
 
     def initialize(source_files)
       source_files.map { |source| multitask PACKAGE_NAME => [copy_task(source, target(source))] }
-      multitask PACKAGE_NAME => [version_task]
+      multitask PACKAGE_NAME => [version_task, link_task]
       disable_remote_downloads_task if BUILDPACK_VERSION.offline
     end
 
@@ -72,6 +72,16 @@ module Package
       end
 
       target
+    end
+
+    def link_task
+      # mkdir_p "#{STAGING_DIR}/bin"
+
+      directory "#{STAGING_DIR}/bin" do |d|
+        %w( compile detect finalize release ).each do |phase|
+          ln_s './run', "#{d.name}/#{phase}"
+        end
+      end
     end
 
   end
